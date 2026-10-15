@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Football Gridiron Challenge</title>
+    <style>
+        :root {
+            --turf-green: #2ecc71;
+            --field-green: #27ae60;
+            --dark-blue: #2c3e50;
+            --gold: #f1c40f;
+            --text-light: #ecf0f1;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a252f;
+            color: var(--text-light);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        #game-container {
+            width: 100%;
+            max-width: 800px;
+            background-color: var(--dark-blue);
+            border: 4px solid var(--gold);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .active {
+            display: block;
+        }
+
+        h1, h2, h3 {
+            text-align: center;
+            color: var(--gold);
+            text-transform: uppercase;
+            margin-top: 0;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            background-color: var(--field-green);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background-color: var(--turf-green);
+        }
+
+        .btn-secondary {
+            background-color: #7f8c8d;
+        }
+        .btn-secondary:hover {
+            background-color: #95a5a6;
+        }
+
+        /* Gridiron UI Components */
+        .scoreboard {
+            display: flex;
+            justify-content: space-between;
+            background: #111;
+            padding: 15px;
+            border-radius: 5px;
+            border: 2px solid #333;
+            font-family: 'Courier New', Courier, monospace;
+            margin-bottom: 20px;
+        }
+
+        .score-box {
+            text-align: center;
+        }
+        .score-num {
+            font-size: 32px;
+            color: #ff3333;
+            font-weight: bold;
+        }
+
+        .field-display {
+            background-color: var(--field-green);
+            border: 2px solid white;
+            height: 60px;
+            position: relative;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            overflow: hidden;
+        }
+
+        .ball-marker {
+            width: 12px;
+            height: 12px;
+            background-color: #8B4513;
+            border-radius: 50%;
+            position: absolute;
+            border: 1px solid white;
+            transition: left 0.5s ease;
+        }
+
+        .log-box {
+            background-color: #111;
+            height: 150px;
+            overflow-y: auto;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            margin-bottom: 20px;
+            border: 1px solid #444;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid var(--gold);
+        }
+
+        .play-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <!-- MAIN MENU -->
+    <div id="menu-screen" class="screen active">
+        <h1>NCAA Gridiron Challenge</h1>
+        <p style="text-align:center; font-style:italic;">Chasing National Championship Glory</p>
+        <button class="btn" onclick="showScreen('exhibition-setup')">Exhibition Game</button>
+        <button class="btn" onclick="initRoadToGloryMenu()">Road To Glory (Career)</button>
+    </div>
+
+    <!-- EXHIBITION SETUP -->
+    <div id="exhibition-setup" class="screen">
+        <h2>Exhibition Matchup</h2>
+        <div class="stats-grid">
+            <div>
+                <label>Your Team:</label>
+                <select id="user-team" class="btn btn-secondary">
+                    <option value="Texas Longhorns">Texas Longhorns (OVR 92)</option>
+                    <option value="Alabama Crimson Tide">Alabama Crimson Tide (OVR 94)</option>
+                    <option value="Ohio State Buckeyes">Ohio State Buckeyes (OVR 93)</option>
+                    <option value="Georgia Bulldogs">Georgia Bulldogs (OVR 95)</option>
+                    <option value="Michigan Wolverines">Michigan Wolverines (OVR 89)</option>
+                </select>
+            </div>
+            <div>
+                <label>Opponent:</label>
+                <select id="opp-team" class="btn btn-secondary">
+                    <option value="Georgia Bulldogs">Georgia Bulldogs (OVR 95)</option>
+                    <option value="Alabama Crimson Tide">Alabama Crimson Tide (OVR 94)</option>
+                    <option value="Ohio State Buckeyes">Ohio State Buckeyes (OVR 93)</option>
+                    <option value="Texas Longhorns">Texas Longhorns (OVR 92)</option>
+                    <option value="Notre Dame Fighting Irish">Notre Dame Fighting Irish (OVR 88)</option>
+                </select>
+            </div>
+        </div>
+        <button class="btn" onclick="startExhibition()">Kick Off Game</button>
+        <button class="btn btn-secondary" onclick="showScreen('menu-screen')">Back to Menu</button>
+    </div>
+
+    <!-- GAMEPLAY SCREEN (USED BY BOTH MODES) -->
+    <div id="gameplay-screen" class="screen">
+        <div class="scoreboard">
+            <div class="score-box">
+                <div id="sb-user-name">TEAM</div>
+                <div id="sb-user-score" class="score-num">0</div>
+            </div>
+            <div style="text-align: center;">
+                <div id="sb-down-dist">1st & 10</div>
+                <div id="sb-yardline">Own 25</div>
+                <div id="sb-possession" style="color: var(--gold); font-weight: bold; margin-top:5px;">● BALL</div>
+            </div>
+            <div class="score-box">
+                <div id="sb-opp-name">OPP</div>
+                <div id="sb-opp-score" class="score-num">0</div>
+            </div>
+        </div>
+
+        <div class="field-display">
+            <div style="position: absolute; left: 0; width: 100%; display:flex; justify-content:space-between; padding:0 20px; box-sizing:border-box; color:rgba(255,255,255,0.3);">
+                <span>G</span><span>10</span><span>20</span><span>30</span><span>40</span><span>50</span><span>40</span><span>30</span><span>20</span><span>10</span><span>G</span>
+            </div>
+            <div id="ball-marker" class="ball-marker"></div>
+        </div>
+
+        <div id="game-log" class="log-box">The captains meet at midfield for the coin toss...</div>
+
+        <div id="play-calling-zone">
+            <h3>Call Your Play</h3>
+            <div class="play-options">
+                <button class="btn" onclick="executePlay('Inside Run')">Inside Run</button>
+                <button class="btn" onclick="executePlay('Outside Stretch')">Outside Stretch</button>
+                <button class="btn" onclick="executePlay('Short Pass')">Short Pass</button>
+                <button class="btn" onclick="executePlay('Deep Bomb')">Deep Bomb</button>
+            </div>
+            <button id="punt-fg-btn" class="btn btn-secondary" onclick="executeSpecialPlay()" style="margin-top: 10px;">Punt / Field Goal</button>
+        </div>
+        
+        <div id="post-game-zone" style="display: none;">
+            <button class="btn" id="exit-game-btn" onclick="exitMatch()">Return to Hub</button>
+        </div>
+    </div>
+
+    <!-- ROAD TO GLORY HUB -->
+    <div id="rtg-hub" class="screen">
+        <h2>Road to Glory Career</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Player Bio</h3>
+                <p><strong>Name:</strong> <span id="rtg-name">Star Player</span></p>
+                <p><strong>Position:</strong> QB</p>
+                <p><strong>School:</strong> <span id="rtg-school">College</span></p>
+                <p><strong>Skill Points:</strong> <span id="rtg-sp">0</span></p>
+            </div>
+            <div class="stat-card">
+                <h3>Player Ratings</h3>
+                <p>Speed: <span id="rate-spd">75</span> <button onclick="upgradeStat('spd')" style="float:right; cursor:pointer;">+</button></p>
+                <p>Throw Power: <span id="rate-pwr">75</span> <button onclick="upgradeStat('pwr')" style="float:right; cursor:pointer;">+</button></p>
+                <p>Football IQ: <span id="rate-iq">75</span> <button onclick="upgradeStat('iq')" style="float:right; cursor:pointer;">+</button></p>
+            </div>
+        </div>
+
+        <div class="stat-card" style="margin-bottom: 20px;">
+            <h3>Season Progress</h3>
+            <p><strong>Week:</strong> <span id="rtg-week">1</span> / 5</p>
+            <p><strong>Record:</strong> <span id="rtg-record">0-0</span></p>
+            <p><strong>Next Opponent:</strong> <span id="rtg-next-opp">Opponent</span></p>
+        </div>
+
+        <button class="btn" id="rtg-play-btn" onclick="playRtgWeek()">Play Next Game</button>
+        <button class="btn btn-secondary" onclick="showScreen('menu-screen')">Exit Career</button>
+    </div>
+</div>
+
+<script>
+    // System Screen Engine
+    function showScreen(screenId) {
